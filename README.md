@@ -22,20 +22,15 @@ pip install streamlit
 ```
 
 ### Installation
-<ol>
-    <li>
-        Clone the repo
-        ```bash
-        git clone https://github.com/micheleGolino/calendar-ics-creator.git
-        ```
-    </li>
-    <li>
-        Run the application
-        ```bash
-        streamlit run Welcome.py
-        ```
-    </li>
-</ol>
+1. Clone the repo
+```bash
+git clone https://github.com/micheleGolino/calendar-ics-creator.git
+```
+
+2. Run the application
+```bash
+streamlit run Calendars.py
+```
 
 ### Usage
 
