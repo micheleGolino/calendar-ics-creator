@@ -2,8 +2,15 @@ import streamlit as st
 import pytz
 import io
 from datetime import datetime, time
+from translations import translations
 
-st.set_page_config(page_title="Calendar ICS", layout="centered", page_icon="🗓️")
+st.set_page_config(page_title="Calendars ICS", layout="centered", page_icon="🗓️")
+
+option_languages = ["EN", "ES", "IT", "FR", "DE", "PT", "NL"]
+sorted_languages = sorted(option_languages)
+index_en_language = sorted_languages.index("EN")
+language = st.sidebar.selectbox("Select Language", options=sorted_languages, key="select_language", index=index_en_language)
+texts = translations[language]
 
 def create_ics_content(summary, dtstart, dtend, attendees, description, organizer):
     """
@@ -135,7 +142,7 @@ def download_ics_file(input_title, ics_content):
     buffer.seek(0)
     # Provide a download button
     st.download_button(
-        label="Create calendar .ics file",
+        label=texts["download_button_label"],
         data=buffer,
         file_name=file_name,
         mime="text/calendar"
@@ -160,9 +167,9 @@ def input_event_details():
     Returns:
     tuple: A tuple containing the event title, organizer, and description input by the user.
     """
-    input_title = st.text_input("Enter the event title (*)", key="input_title")
-    input_organizer = st.text_input("Enter the organizer's name", key="input_organizer")
-    input_description = st.text_input("Enter the event description", key="input_description")
+    input_title = st.text_input(texts["event_title_input"], key="input_title")
+    input_organizer = st.text_input(texts["organizer_input"], key="input_organizer")
+    input_description = st.text_input(texts["description_input"], key="input_description")
     return input_title, input_organizer, input_description
 
 def input_date_details(prefix, current_hour, current_minute):
@@ -177,54 +184,21 @@ def input_date_details(prefix, current_hour, current_minute):
     Returns:
     tuple: A tuple containing the selected date, hour, minute, and second.
     """
-    st.markdown(f"## Enter the {prefix} date", unsafe_allow_html=True)
-    date = st.date_input(f"Select the {prefix} date (*)", "today", key=f"{prefix}_date")
-    hour = st.number_input("Enter the hour (*)", min_value=0, max_value=23, step=1, key=f"{prefix}_hours", value=current_hour)
-    minute = st.number_input("Enter the minutes (*)", min_value=0, max_value=59, step=5, key=f"{prefix}_minutes", value=current_minute)
-    second = st.number_input("Enter the seconds (*)", min_value=0, max_value=59, step=5, key=f"{prefix}_seconds")
+    st.markdown(texts[f"{prefix}_date_section"], unsafe_allow_html=True)
+    date = st.date_input(texts[f"{prefix}_date_select"], "today", key=f"{prefix}_date")
+    hour = st.number_input(texts["hours_input"], min_value=0, max_value=23, step=1, key=f"{prefix}_hours", value=current_hour)
+    minute = st.number_input(texts["minutes_input"], min_value=0, max_value=59, step=5, key=f"{prefix}_minutes", value=current_minute)
+    second = st.number_input(texts["seconds_input"], min_value=0, max_value=59, step=5, key=f"{prefix}_seconds")
     return date, hour, minute, second
 
 def main():
     """
     The main function of the Streamlit app. It creates an interface for the user to input event details and generates an ICS file.
     """
-    st.sidebar.markdown("""
-    # Calendar ICS Generator
-
-    **Functionality Overview:**
-
-    This Streamlit application allows users to create `.ics` calendar files easily.
-
-    ### How It Works:
-    1. **Input Event Details:** 
-       Users input the event's title, organizer's name, and a brief description.
-       - The title is mandatory for creating the event.
-       - Organizer's name and description provide additional context.
-
-    2. **Specify Event Timings:**
-       The app captures both start and end dates and times.
-       - Users can select the dates from a calendar interface.
-       - Time details (hours, minutes, and seconds) are set using intuitive sliders.
-
-    3. **Add Attendees:**
-       Attendees' email addresses can be entered, separated by semicolons.
-       - This is crucial for inviting people to the event.
-
-    4. **Validation and File Creation:**
-       - The app validates all inputs to ensure completeness and logical correctness (e.g., the end time is after the start time).
-       - On successful validation, an `.ics` file is generated and ready for download.
-
-    **Note:** All fields marked with an asterisk (*) are required.
-                        
-    ### About this app
-    **Repo git:** https://github.com/micheleGolino/calendar-ics-creator
-
-    ### Contact me 
-    **email: michelegolino94@gmail.com**
-    """, unsafe_allow_html=True)
+    st.sidebar.markdown(texts["sidebar_text"], unsafe_allow_html=True)
 
     curr_hours, curr_minutes = get_current_time()
-    st.markdown("# Enter the details to create your calendar .ics file", unsafe_allow_html=True)
+    st.markdown(texts["main_title_page"], unsafe_allow_html=True)
 
     input_title, input_organizer, input_description = input_event_details()
 
@@ -235,17 +209,17 @@ def main():
     dtend, dtend_hours, dtend_minutes, dtend_seconds = input_date_details("end", curr_hours, curr_minutes)
 
     st.divider()
-    attendees = st.text_area("Enter the email addresses of the invitees, separated by semicolons (;) (*)", key="text_attendees")
+    attendees = st.text_area(texts["invitees_input"], key="text_attendees")
 
-    if st.button("Check validate fields", key="button_validate_fields"):
+    if st.button(texts["check_validate_button"], key="button_validate_fields"):
         if validate_fields(input_title, dtstart, dtstart_hours, dtend_minutes, dtstart_seconds, dtend, dtend_hours, dtend_minutes, dtend_seconds, attendees):
             datestart_to_send = convert_date_to_datetime(dtstart, dtstart_hours, dtstart_minutes, dtstart_seconds)
             dateend_to_send = convert_date_to_datetime(dtend, dtend_hours, dtend_minutes, dtend_seconds)
             ics_content = create_ics_content(input_title, datestart_to_send, dateend_to_send, attendees, input_description, input_organizer)
-            st.success("All fields are valid! Proceed to download file")
+            st.success(texts["validation_success"])
             download_ics_file(input_title, ics_content)
         else:
-            st.warning("All required fields must be completed first, or end date is grater than start date.")
+            st.warning(texts["validation_warning"])
 
 
 main()
